@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Controle Financeiro</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SIDEBAR
+     ═══════════════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"/>
+        <path d="M15 9.354a4 4 0 1 0 0 5.292"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">Finanças</div>
+      <div class="logo-sub">Controle Pessoal</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Principal</div>
+    <button class="nav-item" data-section="dashboard">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+
+    <div class="nav-group-label">Financeiro</div>
+    <button class="nav-item" data-section="despesas">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2"/><path d="M14 8h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5m2 0v1.5m0-9v1.5"/></svg>
+      Despesas Fixas
+    </button>
+    <button class="nav-item" data-section="bancos">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="7" y1="15" x2="7.01" y2="15"/><line x1="11" y1="15" x2="13" y2="15"/></svg>
+      Faturas dos Cartões
+    </button>
+    <button class="nav-item" data-section="parcelas">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="12 4 4 8 12 12 20 8 12 4"/><polyline points="4 12 12 16 20 12"/><polyline points="4 16 12 20 20 16"/></svg>
+      Parcelas
+    </button>
+    <button class="nav-item" data-section="caixa">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1-2.966 2.544h-6.852a3 3 0 0 1-2.965-2.544l-1.255-8.152A2 2 0 0 1 6.331 8z"/><path d="M9 11v-5a3 3 0 0 1 6 0v5"/></svg>
+      A Receber
+    </button>
+
+    <div class="nav-group-label">Sistema</div>
+    <button class="nav-item" data-section="config">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      Configurações
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="nav-item" onclick="downloadBackup()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><polyline points="7 11 12 16 17 11"/><line x1="12" y1="4" x2="12" y2="16"/></svg>
+      Backup
+    </button>
+    <button class="nav-item" onclick="uploadBackup()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><polyline points="7 9 12 4 17 9"/><line x1="12" y1="4" x2="12" y2="16"/></svg>
+      Restaurar
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MAIN
+     ═══════════════════════════════════════════════════════════════ -->
+<main class="main">
+  <header class="topbar">
+    <span class="topbar-title" id="topbar-title">Dashboard</span>
+
+    <!-- ── Navegador de Meses ─────────────────────────────────── -->
+    <div class="mes-nav" id="mes-nav">
+      <button class="btn btn-ghost btn-icon" onclick="navegarMes(-1)" title="Mês anterior">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
+      </button>
+      <span class="mes-label" id="mes-display">—</span>
+      <button class="btn btn-ghost btn-icon" onclick="navegarMes(1)" title="Próximo mês">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+      </button>
+      <button class="btn btn-outline btn-sm" onclick="state.mes=mesAtualStr();renderMesNav();loadAll()" title="Voltar ao mês atual" style="margin-left:4px">Hoje</button>
+    </div>
+
+    <div class="topbar-actions" id="topbar-actions"></div>
+  </header>
+
+  <div class="content">
+
+    <!-- ── Dashboard ──────────────────────────────────────────── -->
+    <section class="section" id="section-dashboard">
+      <div id="dashboard-cards"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:0">
+        <div>
+          <div class="section-header" style="margin-bottom:10px">
+            <h2>Despesas Fixas <small id="dash-despesas-sub"></small></h2>
+            <button class="btn btn-outline btn-sm" onclick="navigate('despesas')">Ver todas</button>
+          </div>
+          <div class="card" id="dash-despesas-preview"></div>
+        </div>
+        <div>
+          <div class="section-header" style="margin-bottom:10px">
+            <h2>Faturas dos Cartões</h2>
+            <button class="btn btn-outline btn-sm" onclick="navigate('bancos')">Ver todas</button>
+          </div>
+          <div class="bancos-grid" id="dash-bancos-preview" style="grid-template-columns:1fr 1fr"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Despesas Fixas ──────────────────────────────────────── -->
+    <section class="section" id="section-despesas">
+      <div class="section-header">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21v-16a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2"/><path d="M14 8h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5m2 0v1.5m0-9v1.5"/></svg>
+          Despesas Fixas
+          <small id="despesas-total"></small>
+        </h2>
+        <button class="btn btn-primary" onclick="openDespesaModal()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nova Despesa
+        </button>
+      </div>
+      <div id="despesas-list"></div>
+    </section>
+
+    <!-- ── Faturas dos Cartões ─────────────────────────────────── -->
+    <section class="section" id="section-bancos">
+      <div class="section-header">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="7" y1="15" x2="7.01" y2="15"/><line x1="11" y1="15" x2="13" y2="15"/></svg>
+          Faturas dos Cartões
+          <small id="bancos-total"></small>
+        </h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" onclick="openGerenciarCartoes()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+            Gerenciar Cartões
+          </button>
+          <button class="btn btn-primary" onclick="openBancoModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo Cartão
+          </button>
+        </div>
+      </div>
+      <div class="bancos-grid" id="bancos-grid"></div>
+    </section>
+
+    <!-- ── Parcelas ───────────────────────────────────── -->
+    <section class="section" id="section-parcelas">
+      <div class="section-header">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="12 4 4 8 12 12 20 8 12 4"/><polyline points="4 12 12 16 20 12"/><polyline points="4 16 12 20 20 16"/></svg>
+          Parcelas
+          <small id="parcelas-total"></small>
+        </h2>
+        <button class="btn btn-primary" onclick="openParcelaModal()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nova Parcela
+        </button>
+      </div>
+      <div id="parcelas-list"></div>
+    </section>
+
+    <!-- ── A Receber ────────────────────────────────── -->
+    <section class="section" id="section-caixa">
+      <div class="section-header">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1-2.966 2.544h-6.852a3 3 0 0 1-2.965-2.544l-1.255-8.152A2 2 0 0 1 6.331 8z"/><path d="M9 11v-5a3 3 0 0 1 6 0v5"/></svg>
+          A Receber
+          <small id="caixa-total"></small>
+        </h2>
+        <button class="btn btn-primary" onclick="openCaixaModal()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Item
+        </button>
+      </div>
+      <div id="caixa-list"></div>
+    </section>
+
+    <!-- ── Configurações ─────────────────────────────────────── -->
+    <section class="section" id="section-config">
+      <div class="section-header">
+        <h2>Configurações</h2>
+      </div>
+      <div class="card" style="max-width:480px">
+        <div style="padding:20px">
+          <div class="form-group">
+            <label class="form-label">Salário Mensal</label>
+            <input type="text" inputmode="decimal" class="form-control input-currency" id="config-salario" placeholder="0,00"/>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);margin-bottom:12px">Backup do Banco de Dados</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-outline" onclick="downloadBackup()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><polyline points="7 11 12 16 17 11"/><line x1="12" y1="4" x2="12" y2="16"/></svg>
+              Exportar Backup
+            </button>
+            <button class="btn btn-outline" onclick="uploadBackup()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><polyline points="7 9 12 4 17 9"/><line x1="12" y1="4" x2="12" y2="16"/></svg>
+              Restaurar Backup
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODALS
+     ═══════════════════════════════════════════════════════════════ -->
+
+<!-- Modal Despesa -->
+<div class="modal-backdrop" id="modal-despesa">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-despesa-title">Nova Despesa</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-despesa')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input type="text" class="form-control" id="despesa-nome" placeholder="Ex: Aluguel, Netflix..."/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor Mensal</label>
+          <input type="text" inputmode="decimal" class="form-control input-currency" id="despesa-valor" placeholder="0,00"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor Pago (este mês)</label>
+          <input type="text" inputmode="decimal" class="form-control input-currency" id="despesa-valor-pago" placeholder="0,00"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-check">
+          <input type="checkbox" id="despesa-cartao"/>
+          No cartão de crédito
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ícone</label>
+        <div class="icon-picker" id="despesa-icon-picker"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-despesa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDespesa()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Fatura (editar valor da fatura do mês) -->
+<div class="modal-backdrop" id="modal-fatura">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-fatura-title">Fatura</h3>
+        <div style="font-size:12px;color:var(--color-text-muted)" id="modal-fatura-mes"></div>
+      </div>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-fatura')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Valor da Fatura</label>
+        <input type="text" inputmode="decimal" class="form-control input-currency" id="fatura-valor" placeholder="0,00"/>
+      </div>
+      <div class="form-group">
+        <label class="form-check">
+          <input type="checkbox" id="fatura-pago"/>
+          Fatura já paga
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-fatura')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveFatura()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Cartão (metadados: nome + cor) -->
+<div class="modal-backdrop" id="modal-banco">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3 id="modal-banco-title">Novo Cartão</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-banco')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nome do Cartão</label>
+        <input type="text" class="form-control" id="banco-nome" placeholder="Ex: Nubank, Inter..."/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cor de Identificação</label>
+        <div class="color-picker-row">
+          <input type="color" class="color-swatch" id="banco-cor" value="#6366f1"/>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-sm btn-outline" style="border-color:#820ad1;color:#820ad1" onclick="document.getElementById('banco-cor').value='#820ad1'">Nubank</button>
+            <button class="btn btn-sm btn-outline" style="border-color:#ff6b00;color:#ff6b00" onclick="document.getElementById('banco-cor').value='#ff6b00'">Inter</button>
+            <button class="btn btn-sm btn-outline" style="border-color:#242424;color:#242424" onclick="document.getElementById('banco-cor').value='#242424'">C6</button>
+            <button class="btn btn-sm btn-outline" style="border-color:#cc092f;color:#cc092f" onclick="document.getElementById('banco-cor').value='#cc092f'">Bradesco</button>
+            <button class="btn btn-sm btn-outline" style="border-color:#3b82f6;color:#3b82f6" onclick="document.getElementById('banco-cor').value='#3b82f6'">Azul</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-banco')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveBanco()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Gerenciar Cartões -->
+<div class="modal-backdrop" id="modal-gerenciar">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3>Gerenciar Cartões</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-gerenciar')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding:8px 0">
+      <div id="gerenciar-lista"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modal-gerenciar');openBancoModal()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Adicionar Cartão
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Parcela -->
+<div class="modal-backdrop" id="modal-parcela">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-parcela-title">Nova Parcela</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-parcela')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="tipo-toggle" id="parcela-tipo-toggle">
+          <button class="tipo-btn active" data-tipo="pagar" onclick="setParcelaTipo('pagar')">↑ A Pagar</button>
+          <button class="tipo-btn" data-tipo="receber" onclick="setParcelaTipo('receber')">↓ A Receber</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input type="text" class="form-control" id="parcela-nome" placeholder="Ex: Notebook, Sofá..."/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valor da Parcela</label>
+        <input type="text" inputmode="decimal" class="form-control input-currency" id="parcela-valor" placeholder="0,00"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Mês da 1ª parcela</label>
+          <input type="month" class="form-control" id="parcela-inicio"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Total de parcelas</label>
+          <input type="number" class="form-control" id="parcela-total" placeholder="1" min="1"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-check">
+          <input type="checkbox" id="parcela-cartao"/>
+          No cartão de crédito
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ícone</label>
+        <div class="icon-picker" id="parcela-icon-picker"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-parcela')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveParcela()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Caixa -->
+<div class="modal-backdrop" id="modal-caixa">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-caixa-title">Novo Item</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-caixa')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input type="text" class="form-control" id="caixa-nome" placeholder="Ex: Mercado, Farmácia..."/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valor</label>
+        <input type="text" inputmode="decimal" class="form-control input-currency" id="caixa-valor" placeholder="0,00"/>
+      </div>
+      <div class="form-group">
+        <label class="form-check">
+          <input type="checkbox" id="caixa-pago"/>
+          Já recebido
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ícone</label>
+        <div class="icon-picker" id="caixa-icon-picker"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-caixa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCaixa()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Salário -->
+<div class="modal-backdrop" id="modal-salario">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-header">
+      <h3>Meu Salário</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-salario')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Salário mensal líquido</label>
+        <input type="text" inputmode="decimal" class="form-control input-currency" id="modal-salario-valor" placeholder="0,00" style="font-size:18px;font-weight:700;text-align:right" onkeydown="if(event.key==='Enter')saveSalarioModal()"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-salario')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSalarioModal()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Confirmação customizado -->
+<div class="modal-backdrop" id="modal-confirm">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header" style="border-bottom:none;padding-bottom:8px">
+      <div class="confirm-icon" id="confirm-icon"></div>
+    </div>
+    <div class="modal-body" style="padding-top:4px;text-align:center">
+      <p id="confirm-message" style="font-size:14px;color:var(--color-text-primary);font-weight:500;line-height:1.5"></p>
+      <p id="confirm-sub" style="font-size:12px;color:var(--color-text-muted);margin-top:4px"></p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:10px;padding-top:8px">
+      <button class="btn btn-outline" style="min-width:100px" id="confirm-cancel">Cancelar</button>
+      <button class="btn btn-danger-solid" style="min-width:100px" id="confirm-ok">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>

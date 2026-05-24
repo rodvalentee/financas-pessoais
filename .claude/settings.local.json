@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(pip install pyinstaller --quiet 2>&1)",
+      "PowerShell($pyinstaller = \"$env:APPDATA\\\\Python\\\\Python314\\\\Scripts\\\\pyinstaller.exe\"; if \\(Test-Path $pyinstaller\\) { Write-Output \"Encontrado: $pyinstaller\" } else { python -m PyInstaller --version 2>&1 })",
+      "PowerShell($exe = \"c:\\\\PROJETOS\\\\PESSOAL\\\\custos\\\\dist\\\\ControleFinanceiro.exe\"; $size = \\(Get-Item $exe\\).Length / 1MB; Write-Output \"Executavel: $exe`nTamanho: $\\([math]::Round\\($size,1\\)\\) MB\")",
+      "PowerShell(cd c:\\\\PROJETOS\\\\PESSOAL\\\\custos; Get-ChildItem -Recurse __pycache__ -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })",
+      "PowerShell(netstat -ano | Select-String \":5000\" | ForEach-Object { $_.ToString\\(\\).Trim\\(\\) })",
+      "Bash(NO_BROWSER=1 python app.py)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:5000/)",
+      "Bash(node --input-type=module)",
+      "Bash(node -e ' *)",
+      "Bash(netstat -ano)",
+      "Bash(curl -s http://127.0.0.1:5000/api/parcelas?mes=2026-05)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('OK, parcelas:', len\\(d\\)\\)\")",
+      "Bash(curl -s http://127.0.0.1:5000/api/resumo?mes=2026-05)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('OK — salário:', d['salario']\\)\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('saldo_caixa:', d['saldo_caixa']\\)\")",
+      "Bash(curl -s \"http://127.0.0.1:5000/api/resumo?mes=2026-05\")",
+      "Bash(python -c ' *)"
+    ]
+  }
+}
