@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Banco de dados local
+*.db
+*.sqlite
+
+# Claude Code
+.claude/
+
+# Windows
+Thumbs.db
+desktop.ini
