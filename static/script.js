@@ -310,6 +310,7 @@ function renderDashboard() {
       await loadAll();
     });
     el.addEventListener("blur", async () => {
+      if (!el.isConnected) return; // evita loop: elemento removido do DOM pelo re-render
       if (_saved) { _saved = false; return; }
       const valor = parseCurrency(el);
       const atual = parseFloat(state.config?.[chave]) || 0;

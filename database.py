@@ -1,9 +1,17 @@
 import sqlite3
 import os
+import sys
 import json
 from datetime import datetime
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "financas.db")
+# Quando empacotado pelo PyInstaller (--onefile), usa a pasta do .exe.
+# Em desenvolvimento, usa a pasta do script.
+if getattr(sys, "frozen", False):
+    _BASE_DIR = os.path.dirname(sys.executable)
+else:
+    _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DB_PATH = os.path.join(_BASE_DIR, "financas.db")
 
 
 def get_conn():

@@ -234,13 +234,26 @@ def api_restore():
 # MAIN
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def open_browser():
+def find_free_port(start=5000, end=5020):
+    import socket
+    for port in range(start, end):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("127.0.0.1", port))
+                return port
+            except OSError:
+                continue
+    raise RuntimeError("Nenhuma porta disponível entre 5000 e 5020.")
+
+
+def open_browser(port):
     time.sleep(1.2)
-    webbrowser.open(f"http://127.0.0.1:{PORT}")
+    webbrowser.open(f"http://127.0.0.1:{port}")
 
 
 if __name__ == "__main__":
+    port = find_free_port()
     if not os.environ.get("NO_BROWSER"):
-        t = threading.Thread(target=open_browser, daemon=True)
+        t = threading.Thread(target=open_browser, args=(port,), daemon=True)
         t.start()
-    app.run(host="127.0.0.1", port=PORT, debug=False, use_reloader=False)
+    app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
