@@ -153,6 +153,12 @@ def init_db():
     except Exception:
         pass
 
+    # Garante que categoria existe em despesas_fixas
+    try:
+        c.execute("ALTER TABLE despesas_fixas ADD COLUMN categoria TEXT DEFAULT 'outros'")
+    except Exception:
+        pass
+
     # Garante que mes_inicio existe em parcelas_grandes
     try:
         c.execute("ALTER TABLE parcelas_grandes ADD COLUMN mes_inicio TEXT DEFAULT ''")
@@ -221,6 +227,7 @@ def listar_despesas(mes_ano=None):
     if mes_ano:
         rows = conn.execute("""
             SELECT d.id, d.nome, d.icone, d.valor, d.no_cartao, d.ordem, d.ativo, d.criado_em,
+                   COALESCE(d.categoria, 'outros') AS categoria,
                    COALESCE(p.valor_pago, 0) AS valor_pago
             FROM despesas_fixas d
             LEFT JOIN pagamentos_despesa p ON p.despesa_id = d.id AND p.mes_ano = ?
@@ -229,7 +236,7 @@ def listar_despesas(mes_ano=None):
         """, (mes_ano,)).fetchall()
     else:
         rows = conn.execute(
-            "SELECT *, 0 AS valor_pago FROM despesas_fixas WHERE ativo=1 ORDER BY ordem, id"
+            "SELECT *, COALESCE(categoria,'outros') AS categoria, 0 AS valor_pago FROM despesas_fixas WHERE ativo=1 ORDER BY ordem, id"
         ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -239,9 +246,9 @@ def criar_despesa(data):
     conn = get_conn()
     max_ordem = conn.execute("SELECT COALESCE(MAX(ordem),0) FROM despesas_fixas").fetchone()[0]
     conn.execute(
-        "INSERT INTO despesas_fixas (nome, icone, valor, no_cartao, ordem) VALUES (?,?,?,?,?)",
+        "INSERT INTO despesas_fixas (nome, icone, valor, no_cartao, ordem, categoria) VALUES (?,?,?,?,?,?)",
         (data["nome"], data.get("icone", "receipt"), float(data.get("valor", 0)),
-         int(data.get("no_cartao", 0)), max_ordem + 1)
+         int(data.get("no_cartao", 0)), max_ordem + 1, data.get("categoria", "outros"))
     )
     conn.commit()
     id_novo = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
@@ -252,9 +259,9 @@ def criar_despesa(data):
 def atualizar_despesa(id, data):
     conn = get_conn()
     conn.execute(
-        "UPDATE despesas_fixas SET nome=?, icone=?, valor=?, no_cartao=? WHERE id=?",
+        "UPDATE despesas_fixas SET nome=?, icone=?, valor=?, no_cartao=?, categoria=? WHERE id=?",
         (data["nome"], data.get("icone", "receipt"), float(data.get("valor", 0)),
-         int(data.get("no_cartao", 0)), id)
+         int(data.get("no_cartao", 0)), data.get("categoria", "outros"), id)
     )
     conn.commit()
     conn.close()
@@ -551,6 +558,27 @@ def calcular_resumo(mes_ano=None):
         "total_pendente": total_pendente,
         "sobra": sobra,
     }
+
+
+# ─── HISTÓRICO ───────────────────────────────────────────────────────────────
+
+def historico_meses(mes_ref, n=6):
+    """Retorna resumo dos últimos n meses (incluindo mes_ref)."""
+    ano, mes = int(mes_ref[:4]), int(mes_ref[5:7])
+    result = []
+    for i in range(n - 1, -1, -1):
+        total_abs = ano * 12 + mes - 1 - i
+        a = total_abs // 12
+        m = total_abs % 12 + 1
+        mes_ano = f"{a:04d}-{m:02d}"
+        r = calcular_resumo(mes_ano)
+        result.append({
+            "mes": mes_ano,
+            "entradas": r["salario"] + r["saldo_caixa"] + r["total_caixa"] + r["total_parc_receber"],
+            "saidas": r["total_gastos"],
+            "saldo": r["sobra"],
+        })
+    return result
 
 
 # ─── BACKUP / RESTORE ────────────────────────────────────────────────────────

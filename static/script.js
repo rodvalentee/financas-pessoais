@@ -3,6 +3,22 @@
    ═══════════════════════════════════════════════════════════════ */
 
 // ══════════════════════════════════════════════════════════════════
+// CATEGORIAS
+// ══════════════════════════════════════════════════════════════════
+const CATEGORIAS = {
+  moradia:     { label: "Moradia",      cor: "#6366f1", emoji: "🏠", icone: "home" },
+  alimentacao: { label: "Alimentação",  cor: "#f59e0b", emoji: "🍔", icone: "shopping-bag" },
+  transporte:  { label: "Transporte",   cor: "#3b82f6", emoji: "🚗", icone: "car" },
+  saude:       { label: "Saúde",        cor: "#10b981", emoji: "💊", icone: "heart" },
+  bemestar:    { label: "Bem-estar",    cor: "#06b6d4", emoji: "🧘", icone: "activity" },
+  assinatura:  { label: "Assinatura",   cor: "#8b5cf6", emoji: "📱", icone: "device-mobile" },
+  lazer:       { label: "Lazer",        cor: "#ec4899", emoji: "🎮", icone: "music" },
+  educacao:    { label: "Educação",     cor: "#0ea5e9", emoji: "📚", icone: "book" },
+  pet:         { label: "Pet",          cor: "#f97316", emoji: "🐾", icone: "paw" },
+  outros:      { label: "Outros",       cor: "#94a3b8", emoji: "📦", icone: "receipt" },
+};
+
+// ══════════════════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════════════════
 
@@ -118,9 +134,17 @@ function navegarMes(delta) {
 function renderMesNav() {
   const el = $("#mes-display");
   if (el) el.textContent = mesDisplay(state.mes);
-  // destaca se é o mês atual
   const nav = $("#mes-nav");
   if (nav) nav.classList.toggle("mes-atual", state.mes === mesAtualStr());
+  const picker = $("#mes-picker");
+  if (picker) picker.value = state.mes;
+}
+
+function irParaMes(valor) {
+  if (!valor) return;
+  state.mes = valor;
+  renderMesNav();
+  loadAll();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -158,6 +182,9 @@ const ICONS = {
   "calendar": `<path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="4" y="5" width="16" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="4" y1="11" x2="20" y2="11"/><line x1="11" y1="15" x2="12" y2="15"/><line x1="12" y1="15" x2="12" y2="18"/>`,
   "chevron-left": `<path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18"/>`,
   "chevron-right": `<path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18"/>`,
+  "activity": `<path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="3 12 6 3 9 15 12 9 15 13 17 11 21 11"/>`,
+  "music": `<path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M13 17a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><polyline points="9 17 9 4 19 2 19 14"/>`,
+  "paw": `<path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="14" cy="4" r="1"/><circle cx="17" cy="8" r="1"/><circle cx="7" cy="4" r="1"/><circle cx="4" cy="8" r="1"/><path d="M12 18c-3.6 0 -6.6 -2 -7 -5l-.5 -4c-.1 -1.4 .8 -2 1.5 -2c1 0 2 1 2.5 2.5c1 -.5 2 -.5 3.5 -.5s2.5 0 3.5 .5c.5 -1.5 1.5 -2.5 2.5 -2.5c.7 0 1.6 .6 1.5 2l-.5 4c-.4 3 -3.4 5 -7 5z"/>`,
 };
 
 const ICON_LIST = Object.keys(ICONS).filter(k => !["chevron-left","chevron-right","calendar","check","x","plus","pencil","trash","download","upload","arrow-up","arrow-down"].includes(k));
@@ -197,7 +224,7 @@ function navigate(id) {
 // ══════════════════════════════════════════════════════════════════
 async function loadAll() {
   const mes = state.mes;
-  const [resumo, despesas, bancos, faturas, parcelas, caixa, config] = await Promise.all([
+  const [resumo, despesas, bancos, faturas, parcelas, caixa, config, historico] = await Promise.all([
     api(`/api/resumo?mes=${mes}`),
     api(`/api/despesas?mes=${mes}`),
     api("/api/bancos"),
@@ -205,8 +232,9 @@ async function loadAll() {
     api(`/api/parcelas?mes=${mes}`),
     api(`/api/caixa?mes=${mes}`),
     api("/api/config"),
+    api(`/api/historico?mes=${mes}`),
   ]);
-  state = { ...state, resumo, despesas, bancos, faturas, parcelas, caixa, config };
+  state = { ...state, resumo, despesas, bancos, faturas, parcelas, caixa, config, historico };
   renderDashboard();
   renderDespesas();
   renderFaturas();
@@ -357,6 +385,121 @@ function renderDashboard() {
   } else {
     bancosEl.innerHTML = `<div class="empty-state" style="padding:24px;grid-column:1/-1">${icon("credit-card",32)}<p>Sem cartões</p></div>`;
   }
+
+  // gráfico histórico
+  renderChart(state.historico || []);
+
+  // breakdown por categoria
+  renderCategoriasBreakdown(state.despesas || []);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// GRÁFICO HISTÓRICO
+// ══════════════════════════════════════════════════════════════════
+let _chartInstance = null;
+
+function renderChart(historico) {
+  const canvas = $("#chart-historico");
+  if (!canvas || !window.Chart) return;
+
+  const labels   = historico.map(h => mesDisplay(h.mes).replace(/\s\d{4}/, m => " '" + m.trim().slice(2)));
+  const entradas = historico.map(h => h.entradas);
+  const saidas   = historico.map(h => h.saidas);
+  const saldo    = historico.map(h => h.saldo);
+
+  if (_chartInstance) { _chartInstance.destroy(); _chartInstance = null; }
+
+  _chartInstance = new Chart(canvas, {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: "bar",
+          label: "Entradas",
+          data: entradas,
+          backgroundColor: "rgba(16,185,129,0.65)",
+          borderRadius: 4,
+          order: 2,
+        },
+        {
+          type: "bar",
+          label: "Saídas",
+          data: saidas,
+          backgroundColor: "rgba(239,68,68,0.65)",
+          borderRadius: 4,
+          order: 2,
+        },
+        {
+          type: "line",
+          label: "Saldo",
+          data: saldo,
+          borderColor: "#6366f1",
+          backgroundColor: "rgba(99,102,241,0.08)",
+          tension: 0.4,
+          fill: true,
+          pointRadius: 4,
+          pointBackgroundColor: "#6366f1",
+          order: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "top", labels: { font: { size: 11 }, boxWidth: 12, padding: 12 } },
+        tooltip: {
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${brl(ctx.parsed.y)}` },
+        },
+      },
+      scales: {
+        y: {
+          ticks: { callback: v => "R$ " + Number(v).toLocaleString("pt-BR"), font: { size: 10 } },
+          grid: { color: "rgba(0,0,0,0.05)" },
+        },
+        x: { ticks: { font: { size: 11 } }, grid: { display: false } },
+      },
+    },
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// BREAKDOWN POR CATEGORIA
+// ══════════════════════════════════════════════════════════════════
+function renderCategoriasBreakdown(despesas) {
+  const el = $("#dash-categorias");
+  if (!el) return;
+
+  const totais = {};
+  let totalGeral = 0;
+  despesas.forEach(d => {
+    const cat = d.categoria || "outros";
+    totais[cat] = (totais[cat] || 0) + d.valor;
+    totalGeral += d.valor;
+  });
+
+  if (!totalGeral) {
+    el.innerHTML = `<div class="chart-title">Gastos por Categoria</div>
+      <div class="empty-state" style="padding:24px">${icon("chart-bar",32)}<p>Sem despesas</p></div>`;
+    return;
+  }
+
+  const sorted = Object.entries(totais).sort((a, b) => b[1] - a[1]);
+
+  el.innerHTML = `<div class="chart-title">Gastos por Categoria</div>
+    <div class="cat-list">
+      ${sorted.map(([cat, total]) => {
+        const c = CATEGORIAS[cat] || CATEGORIAS.outros;
+        const pct = Math.round((total / totalGeral) * 100);
+        return `<div class="cat-row">
+          <span class="cat-label">${c.emoji} ${c.label}</span>
+          <div class="cat-bar-wrap">
+            <div class="cat-bar" style="width:${pct}%;background:${c.cor}"></div>
+          </div>
+          <span class="cat-value">${brl(total)}</span>
+        </div>`;
+      }).join("")}
+    </div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -383,6 +526,9 @@ function renderDespesas() {
     <div class="banco-card ${isPago ? 'banco-pago' : ''}" style="--banco-cor:${cor}" onclick="openDespesaModal(${d.id})">
       <div class="banco-nome">${icon(d.icone||"receipt",13)} ${d.nome}
         ${d.no_cartao ? `<span class="badge badge-purple" style="margin-left:4px">${icon("credit-card",9)} Cartão</span>` : ""}
+      </div>
+      <div class="cat-chip" style="background:${(CATEGORIAS[d.categoria||"outros"]||CATEGORIAS.outros).cor}22;color:${(CATEGORIAS[d.categoria||"outros"]||CATEGORIAS.outros).cor}">
+        ${(CATEGORIAS[d.categoria||"outros"]||CATEGORIAS.outros).emoji} ${(CATEGORIAS[d.categoria||"outros"]||CATEGORIAS.outros).label}
       </div>
       <div class="banco-saldo">${brl(d.valor)}<span style="font-size:11px;font-weight:400;color:var(--color-text-muted)">/mês</span></div>
       <div class="banco-label-fatura">Pago: ${brl(d.valor_pago)}</div>
@@ -431,18 +577,18 @@ function openDespesaModal(id = null) {
   setCurrency($("#despesa-valor"), d?.valor ?? "");
   setCurrency($("#despesa-valor-pago"), d?.valor_pago ?? "");
   $("#despesa-cartao").checked = d?.no_cartao == 1;
-  _selectedIcon = d?.icone || "receipt";
-  renderIconPicker("despesa-icon-picker", _selectedIcon, (ic) => { _selectedIcon = ic; });
+  $("#despesa-categoria").value = d?.categoria || "outros";
   openModal("modal-despesa");
 }
 
 async function saveDespesa() {
   const data = {
     nome: $("#despesa-nome").value.trim(),
-    icone: _selectedIcon,
+    icone: (CATEGORIAS[$("#despesa-categoria").value] || CATEGORIAS.outros).icone,
     valor: parseCurrency($("#despesa-valor")),
     valor_pago: parseCurrency($("#despesa-valor-pago")),
     no_cartao: $("#despesa-cartao").checked ? 1 : 0,
+    categoria: $("#despesa-categoria").value,
     mes_ano: state.mes,
   };
   if (!data.nome) { toast("Informe o nome", "error"); return; }
@@ -477,21 +623,27 @@ function renderFaturas() {
     return;
   }
 
-  container.innerHTML = list.map(f => `
-    <div class="banco-card ${f.pago ? 'banco-pago' : ''}" style="--banco-cor: ${f.cor}" onclick="openFaturaModal(${f.banco_id})">
-      <div class="banco-nome">${f.nome}</div>
-      <div class="banco-saldo">${brl(f.valor)}</div>
-      <div class="banco-label-fatura">fatura ${mesDisplay(state.mes)}</div>
-      <div class="banco-status">
+  container.innerHTML = list.map(f => {
+    const cor = f.pago ? "var(--color-green)" : f.cor || "var(--color-red)";
+    const pct = f.valor > 0 && f.pago ? 100 : 0;
+    return `
+    <div class="banco-card ${f.pago ? 'banco-pago' : ''}" style="--banco-cor:${cor}" onclick="openFaturaModal(${f.banco_id})">
+      <div class="banco-nome">${icon("credit-card",13)} ${f.nome}</div>
+      <div class="banco-saldo">${brl(f.valor)}<span style="font-size:11px;font-weight:400;color:var(--color-text-muted)">/mês</span></div>
+      <div class="banco-label-fatura">Fatura ${mesDisplay(state.mes)}</div>
+      <div class="progress-wrap" style="margin-top:6px">
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${cor}"></div></div>
+      </div>
+      <div class="banco-status" style="margin-top:8px">
         <span class="badge ${f.pago ? 'badge-green' : 'badge-red'}">${f.pago ? '✓ Pago' : '● Pendente'}</span>
       </div>
       <div class="banco-actions" onclick="event.stopPropagation()">
-        <button class="btn btn-ghost btn-icon btn-sm" onclick="toggleFaturaPago(${f.banco_id}, ${f.pago ? 0 : 1})" title="${f.pago ? 'Marcar pendente' : 'Marcar pago'}">
-          ${f.pago ? icon("x", 14) : icon("check", 14)}
-        </button>
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="toggleFaturaPago(${f.banco_id}, ${f.pago ? 0 : 1})" title="${f.pago ? 'Desmarcar' : 'Marcar pago'}">${f.pago ? icon("x",13) : icon("check",13)}</button>
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="openBancoModal(${f.banco_id})" title="Editar">${icon("pencil",13)}</button>
+        <button class="btn btn-danger btn-icon btn-sm" onclick="deleteBanco(${f.banco_id})" title="Excluir">${icon("trash",13)}</button>
       </div>
-    </div>
-  `).join("");
+    </div>`;
+  }).join("");
 }
 
 async function toggleFaturaPago(banco_id, pago) {

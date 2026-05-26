@@ -838,6 +838,56 @@ body {
 .mes-nav.mes-atual .mes-label {
   color: var(--color-accent);
 }
+.mes-nav.mes-atual .btn-hoje {
+  display: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CHART + CATEGORIAS
+   ══════════════════════════════════════════════════════════════════ */
+.chart-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  box-shadow: var(--shadow);
+}
+.chart-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 12px;
+}
+
+/* chip de categoria nos cards */
+.cat-chip {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  margin-top: 5px;
+}
+
+/* breakdown de categorias no dashboard */
+.cat-list { display: flex; flex-direction: column; gap: 8px; }
+.cat-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 80px;
+  align-items: center;
+  gap: 8px;
+}
+.cat-label { font-size: 12px; font-weight: 500; white-space: nowrap; }
+.cat-bar-wrap {
+  height: 6px;
+  background: var(--color-surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.cat-bar { height: 100%; border-radius: 4px; transition: width .4s; }
+.cat-value { font-size: 11px; font-weight: 600; text-align: right; color: var(--color-text-muted); }
 
 /* ══════════════════════════════════════════════════════════════════
    SALARY EDITOR (inline)

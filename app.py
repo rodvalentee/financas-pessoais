@@ -212,6 +212,11 @@ def api_caixa_delete(id):
 # BACKUP / RESTORE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@app.route("/api/historico")
+def api_historico():
+    return jsonify(db.historico_meses(get_mes()))
+
+
 @app.route("/api/backup", methods=["GET"])
 def api_backup():
     data = db.exportar_backup()

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Controle Financeiro</title>
   <link rel="stylesheet" href="/static/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -81,11 +82,17 @@
       <button class="btn btn-ghost btn-icon" onclick="navegarMes(-1)" title="Mês anterior">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg>
       </button>
-      <span class="mes-label" id="mes-display">—</span>
+      <div style="position:relative;display:inline-flex;align-items:center">
+        <span class="mes-label" id="mes-display">—</span>
+        <button class="btn btn-ghost btn-icon" onclick="document.getElementById('mes-picker').showPicker()" title="Selecionar mês" style="margin-left:4px;opacity:0.6">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </button>
+        <input type="month" id="mes-picker" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0" onchange="irParaMes(this.value)"/>
+      </div>
       <button class="btn btn-ghost btn-icon" onclick="navegarMes(1)" title="Próximo mês">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
       </button>
-      <button class="btn btn-outline btn-sm" onclick="state.mes=mesAtualStr();renderMesNav();loadAll()" title="Voltar ao mês atual" style="margin-left:4px">Hoje</button>
+      <button class="btn btn-outline btn-sm btn-hoje" onclick="state.mes=mesAtualStr();renderMesNav();loadAll()" title="Voltar ao mês atual" style="margin-left:4px">Hoje</button>
     </div>
 
     <div class="topbar-actions" id="topbar-actions"></div>
@@ -97,7 +104,17 @@
     <section class="section" id="section-dashboard">
       <div id="dashboard-cards"></div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:0">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+        <div class="chart-card">
+          <div class="chart-title">Evolução dos últimos 6 meses</div>
+          <div style="position:relative;height:180px">
+            <canvas id="chart-historico"></canvas>
+          </div>
+        </div>
+        <div class="chart-card" id="dash-categorias"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
         <div>
           <div class="section-header" style="margin-bottom:10px">
             <h2>Despesas Fixas <small id="dash-despesas-sub"></small></h2>
@@ -139,16 +156,10 @@
           Faturas dos Cartões
           <small id="bancos-total"></small>
         </h2>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-outline" onclick="openGerenciarCartoes()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
-            Gerenciar Cartões
-          </button>
-          <button class="btn btn-primary" onclick="openBancoModal()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Novo Cartão
-          </button>
-        </div>
+        <button class="btn btn-primary" onclick="openBancoModal()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Cartão
+        </button>
       </div>
       <div class="bancos-grid" id="bancos-grid"></div>
     </section>
@@ -249,14 +260,25 @@
         </div>
       </div>
       <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <select class="form-control" id="despesa-categoria">
+          <option value="moradia">🏠 Moradia</option>
+          <option value="alimentacao">🍔 Alimentação</option>
+          <option value="transporte">🚗 Transporte</option>
+          <option value="saude">💊 Saúde</option>
+          <option value="bemestar">🧘 Bem-estar</option>
+          <option value="assinatura">📱 Assinatura</option>
+          <option value="lazer">🎮 Lazer</option>
+          <option value="educacao">📚 Educação</option>
+          <option value="pet">🐾 Pet</option>
+          <option value="outros" selected>📦 Outros</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-check">
           <input type="checkbox" id="despesa-cartao"/>
           No cartão de crédito
         </label>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Ícone</label>
-        <div class="icon-picker" id="despesa-icon-picker"></div>
       </div>
     </div>
     <div class="modal-footer">
