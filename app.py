@@ -239,8 +239,18 @@ def api_restore():
 # MAIN
 # ═══════════════════════════════════════════════════════════════════════════════
 
+import socket
+
+# pasta do exe (ou do script em dev)
+if getattr(sys, "frozen", False):
+    _DATA_DIR = os.path.dirname(sys.executable)
+else:
+    _DATA_DIR = os.path.dirname(os.path.abspath(__file__))
+
+PORT_FILE = os.path.join(_DATA_DIR, "financas.port")
+
+
 def find_free_port(start=5000, end=5020):
-    import socket
     for port in range(start, end):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -251,14 +261,45 @@ def find_free_port(start=5000, end=5020):
     raise RuntimeError("Nenhuma porta disponível entre 5000 e 5020.")
 
 
+def get_running_port():
+    """Retorna a porta se o servidor já estiver rodando, senão None."""
+    try:
+        with open(PORT_FILE) as f:
+            port = int(f.read().strip())
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.5)
+            if s.connect_ex(("127.0.0.1", port)) == 0:
+                return port
+    except Exception:
+        pass
+    return None
+
+
 def open_browser(port):
     time.sleep(1.2)
     webbrowser.open(f"http://127.0.0.1:{port}")
 
 
 if __name__ == "__main__":
+    # Se já estiver rodando, só abre o browser na porta existente
+    running = get_running_port()
+    if running:
+        webbrowser.open(f"http://127.0.0.1:{running}")
+        sys.exit(0)
+
     port = find_free_port()
+
+    # Salva a porta para instâncias futuras detectarem
+    with open(PORT_FILE, "w") as f:
+        f.write(str(port))
+
     if not os.environ.get("NO_BROWSER"):
         t = threading.Thread(target=open_browser, args=(port,), daemon=True)
         t.start()
-    app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
+
+    try:
+        app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
+    finally:
+        # Remove o arquivo de porta quando o servidor encerrar
+        if os.path.exists(PORT_FILE):
+            os.remove(PORT_FILE)
