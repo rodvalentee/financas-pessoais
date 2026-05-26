@@ -186,19 +186,6 @@ def init_db():
         mes_ini_str = f"{ini_ano:04d}-{ini_mes:02d}"
         c.execute("UPDATE parcelas_grandes SET mes_inicio=? WHERE id=?", (mes_ini_str, pid))
 
-    # Seed bancos padrão (sem saldo nem pago)
-    bancos_default = [
-        ("Nubank",   "#820ad1", 1),
-        ("Inter",    "#ff6b00", 2),
-        ("C6 Bank",  "#242424", 3),
-        ("Bradesco", "#cc092f", 4),
-    ]
-    for nome, cor, ordem in bancos_default:
-        c.execute(
-            "INSERT OR IGNORE INTO bancos (nome, cor, ordem) SELECT ?,?,? WHERE NOT EXISTS (SELECT 1 FROM bancos WHERE nome=?)",
-            (nome, cor, ordem, nome)
-        )
-
     conn.commit()
     conn.close()
 
