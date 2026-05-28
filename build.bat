@@ -1,35 +1,31 @@
 @echo off
 echo ============================================================
-echo  Controle Financeiro - Build Nuitka (codigo nativo)
+echo  Controle Financeiro - Build PyInstaller
 echo ============================================================
 
-pip install nuitka --quiet --user
+pip install pyinstaller --quiet --user
 
-rmdir /s /q dist_nuitka 2>nul
+rmdir /s /q dist 2>nul
+rmdir /s /q build 2>nul
+del /q ControleFinanceiro.spec 2>nul
 
-python -m nuitka ^
+pyinstaller ^
   --onefile ^
-  --windows-console-mode=disable ^
-  --include-data-dir=templates=templates ^
-  --include-data-dir=static=static ^
-  --include-package=flask ^
-  --include-package=werkzeug ^
-  --include-package=jinja2 ^
-  --include-package=click ^
-  --include-package=itsdangerous ^
-  --assume-yes-for-downloads ^
-  --output-filename=ControleFinanceiro.exe ^
-  --output-dir=dist_nuitka ^
+  --windowed ^
+  --name ControleFinanceiro ^
+  --icon "static\icon.ico" ^
+  --add-data "templates;templates" ^
+  --add-data "static;static" ^
   app.py
 
 echo.
-if exist "dist_nuitka\ControleFinanceiro.exe" (
-    echo [OK] Executavel gerado: dist_nuitka\ControleFinanceiro.exe
+if exist "dist\ControleFinanceiro.exe" (
+    echo [OK] Executavel gerado: dist\ControleFinanceiro.exe
     echo.
     echo Copie APENAS o .exe para qualquer pasta.
     echo O banco financas.db sera criado na mesma pasta do .exe.
     echo.
-    explorer dist_nuitka
+    explorer dist
 ) else (
     echo [ERRO] Build falhou. Verifique o log acima.
 )
