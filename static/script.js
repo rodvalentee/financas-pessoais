@@ -1084,6 +1084,18 @@ function bindConfirmButtons() {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// SIDEBAR MOBILE
+// ══════════════════════════════════════════════════════════════════
+function toggleSidebar() {
+  document.querySelector(".sidebar").classList.toggle("open");
+  document.getElementById("sidebar-overlay").classList.toggle("open");
+}
+function closeSidebar() {
+  document.querySelector(".sidebar").classList.remove("open");
+  document.getElementById("sidebar-overlay").classList.remove("open");
+}
+
+// ══════════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════════
 document.addEventListener("DOMContentLoaded", () => {
@@ -1095,6 +1107,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $$(".input-currency").forEach(applyCurrencyMask);
 
   $$(".nav-item[data-section]").forEach(btn => {
-    btn.addEventListener("click", () => navigate(btn.dataset.section));
+    btn.addEventListener("click", () => {
+      navigate(btn.dataset.section);
+      closeSidebar(); // fecha sidebar ao navegar em mobile
+    });
   });
 });

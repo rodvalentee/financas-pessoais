@@ -1041,10 +1041,87 @@ body {
 /* ══════════════════════════════════════════════════════════════════
    RESPONSIVE TWEAKS
    ══════════════════════════════════════════════════════════════════ */
+
+/* Hamburger — escondido por padrão, aparece em telas estreitas */
+.btn-hamburger { display: none; }
+
+/* Dashboard bottom grid (chart + categorias) */
+.dashboard-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* ── 860px: DRE empilha verticalmente ───────────────────────── */
+@media (max-width: 860px) {
+  .dre-card { flex-direction: column; }
+
+  .dre-divider { width: auto; height: 1px; margin: 0; }
+
+  .dre-col { padding: 14px 16px; }
+
+  .dre-col-saldo {
+    flex: 1;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    background: var(--color-surface-2);
+  }
+  .dre-saldo { font-size: 22px; margin: 4px 0 2px; }
+}
+
+/* ── 768px: Sidebar vira overlay ─────────────────────────────── */
 @media (max-width: 768px) {
   :root { --sidebar-w: 0px; }
-  .sidebar { display: none; }
+
+  .sidebar {
+    transform: translateX(-240px);
+    transition: transform .25s ease;
+    z-index: 300;
+    display: flex; /* mantém display, só esconde via transform */
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    z-index: 299;
+    backdrop-filter: blur(1px);
+  }
+  .sidebar-overlay.open { display: block; }
+
+  .btn-hamburger { display: inline-flex; }
+
   .content { padding: 16px; }
   .summary-grid { grid-template-columns: 1fr 1fr; }
   .form-row { grid-template-columns: 1fr; }
+
+  .dashboard-bottom-grid { grid-template-columns: 1fr; }
+
+  .topbar { padding: 0 14px; gap: 6px; }
+  .topbar-title { font-size: 13px; }
+}
+
+/* ── 520px: Telas muito estreitas ────────────────────────────── */
+@media (max-width: 520px) {
+  .content { padding: 12px; }
+  .summary-grid { grid-template-columns: 1fr 1fr; }
+
+  .bancos-grid, .banco-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  .banco-card { width: auto; min-width: 0; }
+
+  .mes-label { min-width: 90px; font-size: 12px; }
+  .topbar-actions { gap: 4px; }
+
+  .cat-row { grid-template-columns: 80px 1fr 64px; }
+
+  .modal { max-width: calc(100vw - 24px); }
+
+  .dre-col { padding: 12px; }
+  .dre-input { width: 100px; }
 }
