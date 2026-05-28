@@ -1,36 +1,35 @@
 @echo off
 echo ============================================================
-echo  Controle Financeiro - Build PyInstaller
+echo  Controle Financeiro - Build Nuitka (codigo nativo)
 echo ============================================================
 
-:: Tenta encontrar o pyinstaller
-set PYINST=%APPDATA%\Python\Python314\Scripts\pyinstaller.exe
-where pyinstaller >nul 2>&1 && set PYINST=pyinstaller
+pip install nuitka --quiet --user
 
-pip install flask pyinstaller --quiet --user
+rmdir /s /q dist_nuitka 2>nul
 
-:: Remove build anterior
-rmdir /s /q dist 2>nul
-rmdir /s /q build 2>nul
-del ControleFinanceiro.spec 2>nul
-
-:: Gera o executável portátil
-"%PYINST%" ^
+python -m nuitka ^
   --onefile ^
-  --windowed ^
-  --name "ControleFinanceiro" ^
-  --add-data "templates;templates" ^
-  --add-data "static;static" ^
+  --windows-console-mode=disable ^
+  --include-data-dir=templates=templates ^
+  --include-data-dir=static=static ^
+  --include-package=flask ^
+  --include-package=werkzeug ^
+  --include-package=jinja2 ^
+  --include-package=click ^
+  --include-package=itsdangerous ^
+  --assume-yes-for-downloads ^
+  --output-filename=ControleFinanceiro.exe ^
+  --output-dir=dist_nuitka ^
   app.py
 
 echo.
-if exist "dist\ControleFinanceiro.exe" (
-    echo [OK] Executavel gerado: dist\ControleFinanceiro.exe
+if exist "dist_nuitka\ControleFinanceiro.exe" (
+    echo [OK] Executavel gerado: dist_nuitka\ControleFinanceiro.exe
     echo.
     echo Copie APENAS o .exe para qualquer pasta.
     echo O banco financas.db sera criado na mesma pasta do .exe.
     echo.
-    explorer dist
+    explorer dist_nuitka
 ) else (
     echo [ERRO] Build falhou. Verifique o log acima.
 )

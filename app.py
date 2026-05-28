@@ -241,11 +241,18 @@ def api_restore():
 
 import socket
 
-# pasta do exe (ou do script em dev)
-if getattr(sys, "frozen", False):
-    _DATA_DIR = os.path.dirname(sys.executable)
-else:
-    _DATA_DIR = os.path.dirname(os.path.abspath(__file__))
+# Detecta se está rodando como exe compilado (PyInstaller ou Nuitka)
+def _get_data_dir():
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+    try:
+        if __compiled__:
+            return os.path.dirname(sys.executable)
+    except NameError:
+        pass
+    return os.path.dirname(os.path.abspath(__file__))
+
+_DATA_DIR = _get_data_dir()
 
 PORT_FILE = os.path.join(_DATA_DIR, "financas.port")
 

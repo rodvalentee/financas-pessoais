@@ -4,12 +4,18 @@ import sys
 import json
 from datetime import datetime
 
-# Quando empacotado pelo PyInstaller (--onefile), usa a pasta do .exe.
-# Em desenvolvimento, usa a pasta do script.
-if getattr(sys, "frozen", False):
-    _BASE_DIR = os.path.dirname(sys.executable)
-else:
-    _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Detecta se está rodando como exe compilado (PyInstaller ou Nuitka)
+def _get_base_dir():
+    if getattr(sys, "frozen", False):          # PyInstaller
+        return os.path.dirname(sys.executable)
+    try:
+        if __compiled__:                        # Nuitka
+            return os.path.dirname(sys.executable)
+    except NameError:
+        pass
+    return os.path.dirname(os.path.abspath(__file__))  # dev
+
+_BASE_DIR = _get_base_dir()
 
 DB_PATH = os.path.join(_BASE_DIR, "financas.db")
 
