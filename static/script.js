@@ -249,11 +249,13 @@ async function loadAll() {
 function renderDashboard() {
   const r = state.resumo;
 
-  const totalEntradas = r.salario + r.saldo_caixa + r.total_caixa + r.total_parc_receber;
+  const totalEntradas = (r.salario_incluso_caixa ? 0 : r.salario) + r.saldo_caixa + r.total_caixa + r.total_parc_receber;
 
   const entradas = [
-    { label: "Salário",           value: r.salario,           editKey: "salario",     inputId: "dash-salario-input" },
-    { label: "Dinheiro em caixa", value: r.saldo_caixa,       editKey: "saldo_caixa", inputId: "dash-caixa-input" },
+    { label: "Salário",           value: r.salario,           editKey: "salario",     inputId: "dash-salario-input",
+      sub: r.salario_incluso_caixa ? '<span class="dre-incluso-badge">já incluso no caixa</span>' : null },
+    { label: "Dinheiro em caixa", value: r.saldo_caixa,       editKey: "saldo_caixa", inputId: "dash-caixa-input",
+      inclusoSelect: true, inclusoValue: r.salario_incluso_caixa },
     { label: "A receber",          value: r.total_caixa,       sub: `Recebido: ${brl(r.total_caixa_pago)}` },
     { label: "Parcelas a receber",value: r.total_parc_receber,sub: `Recebido: ${brl(r.total_parc_receber_receb)}` },
   ];
@@ -276,7 +278,15 @@ function renderDashboard() {
             <span class="dre-label">${e.label}</span>
             <input type="text" inputmode="decimal" id="${e.inputId}"
                    class="dre-input input-currency" value="${fmtCurrency(e.value)}" placeholder="0,00"/>
-          </div>` : `
+          </div>
+          ${e.sub ? `<div class="dre-sub">${e.sub}</div>` : ""}
+          ${e.inclusoSelect ? `
+          <div class="dre-incluso-row">
+            <select id="dash-caixa-incluso" class="dre-incluso-select">
+              <option value="0" ${!e.inclusoValue ? "selected" : ""}>Sem salário incluso</option>
+              <option value="1" ${e.inclusoValue  ? "selected" : ""}>Salário já incluso</option>
+            </select>
+          </div>` : ""}` : `
           <div class="dre-row">
             <span class="dre-label">${e.label}</span>
             <span class="dre-value">${brl(e.value)}</span>
@@ -351,6 +361,14 @@ function renderDashboard() {
 
   bindConfigInput("dash-salario-input", "salario", "Salário");
   bindConfigInput("dash-caixa-input",   "saldo_caixa", "Caixa");
+
+  const selIncluso = $("#dash-caixa-incluso");
+  if (selIncluso) {
+    selIncluso.addEventListener("change", async () => {
+      await api("/api/config", { method: "POST", body: JSON.stringify({ salario_incluso_caixa: selIncluso.value }) });
+      await loadAll();
+    });
+  }
 
   // preview despesas (max 4)
   const preview = state.despesas.slice(0, 4);

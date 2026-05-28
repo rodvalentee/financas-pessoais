@@ -370,6 +370,33 @@ body {
 }
 .dre-input:focus { border-bottom-color: var(--color-accent); }
 
+.dre-incluso-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+  margin-bottom: 2px;
+}
+.dre-incluso-select {
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  outline: none;
+  transition: border-color .15s;
+}
+.dre-incluso-select:focus { border-color: var(--color-accent); }
+.dre-incluso-badge {
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--color-yellow-bg);
+  color: var(--color-yellow);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
 /* Saldo */
 .dre-saldo {
   font-size: 28px;

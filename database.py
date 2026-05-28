@@ -148,6 +148,7 @@ def init_db():
     # Config padrão
     c.execute("INSERT OR IGNORE INTO config (chave, valor) VALUES ('salario', '0')")
     c.execute("INSERT OR IGNORE INTO config (chave, valor) VALUES ('saldo_caixa', '0')")
+    c.execute("INSERT OR IGNORE INTO config (chave, valor) VALUES ('salario_incluso_caixa', '0')")
 
     # ── Migrações para bancos legados ─────────────────────────────
     # Remove colunas antigas (saldo/pago) da tabela bancos se existirem
@@ -482,8 +483,9 @@ def calcular_resumo(mes_ano=None):
         mes_ano = mes_atual()
 
     cfg = get_config()
-    salario      = float(cfg.get("salario", 0))
-    saldo_caixa  = float(cfg.get("saldo_caixa", 0))
+    salario               = float(cfg.get("salario", 0))
+    saldo_caixa           = float(cfg.get("saldo_caixa", 0))
+    salario_incluso_caixa = int(cfg.get("salario_incluso_caixa", 0))
 
     despesas = listar_despesas(mes_ano)
     parcelas = listar_parcelas(mes_ano)
@@ -519,10 +521,9 @@ def calcular_resumo(mes_ano=None):
     # Total ainda pendente
     total_pendente = total_despesas_falta + total_parcelas_falta + total_faturas_falta
 
-    # Saldo = receitas − o que ainda falta pagar
-    # (cada coisa paga aumenta o saldo porque reduz o pendente)
-    # Saldo = receitas − pendente a pagar
-    sobra = (salario + saldo_caixa + total_caixa + total_parc_receber) - total_pendente
+    # Se o salário já está incluso no saldo_caixa, não somamos duas vezes
+    salario_efetivo = 0 if salario_incluso_caixa else salario
+    sobra = (salario_efetivo + saldo_caixa + total_caixa + total_parc_receber) - total_pendente
 
     # Total projetado (orçamento completo do mês — só saídas)
     total_gastos = total_despesas_fixas + total_parcelas + total_faturas
@@ -550,6 +551,7 @@ def calcular_resumo(mes_ano=None):
         "total_pago": total_pago,
         "total_pendente": total_pendente,
         "sobra": sobra,
+        "salario_incluso_caixa": salario_incluso_caixa,
     }
 
 
