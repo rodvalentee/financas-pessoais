@@ -484,8 +484,9 @@ def calcular_resumo(mes_ano=None):
 
     cfg = get_config()
     salario               = float(cfg.get("salario", 0))
-    saldo_caixa           = float(cfg.get("saldo_caixa", 0))
-    salario_incluso_caixa = int(cfg.get("salario_incluso_caixa", 0))
+    # saldo_caixa e salario_incluso_caixa são por mês (chave = "<campo>_<mes_ano>")
+    saldo_caixa           = float(cfg.get(f"saldo_caixa_{mes_ano}", 0))
+    salario_incluso_caixa = int(cfg.get(f"salario_incluso_caixa_{mes_ano}", 0))
 
     despesas = listar_despesas(mes_ano)
     parcelas = listar_parcelas(mes_ano)

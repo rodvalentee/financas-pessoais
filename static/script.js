@@ -360,12 +360,12 @@ function renderDashboard() {
   }
 
   bindConfigInput("dash-salario-input", "salario", "Salário");
-  bindConfigInput("dash-caixa-input",   "saldo_caixa", "Caixa");
+  bindConfigInput("dash-caixa-input", `saldo_caixa_${state.mes}`, "Caixa");
 
   const selIncluso = $("#dash-caixa-incluso");
   if (selIncluso) {
     selIncluso.addEventListener("change", async () => {
-      await api("/api/config", { method: "POST", body: JSON.stringify({ salario_incluso_caixa: selIncluso.value }) });
+      await api("/api/config", { method: "POST", body: JSON.stringify({ [`salario_incluso_caixa_${state.mes}`]: selIncluso.value }) });
       await loadAll();
     });
   }
