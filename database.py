@@ -581,17 +581,20 @@ def historico_meses(mes_ref, n=6):
 
 def exportar_backup():
     conn = get_conn()
-    faturas = [dict(r) for r in conn.execute("SELECT * FROM faturas_mensais").fetchall()]
-    pagamentos = [dict(r) for r in conn.execute("SELECT * FROM pagamentos_despesa").fetchall()]
+    faturas       = [dict(r) for r in conn.execute("SELECT * FROM faturas_mensais").fetchall()]
+    pag_despesa   = [dict(r) for r in conn.execute("SELECT * FROM pagamentos_despesa").fetchall()]
+    pag_parcela   = [dict(r) for r in conn.execute("SELECT * FROM pagamentos_parcela").fetchall()]
+    parcelas_raw  = [dict(r) for r in conn.execute("SELECT * FROM parcelas_grandes").fetchall()]
     conn.close()
     return {
         "config": get_config(),
         "despesas_fixas": listar_despesas(),
         "bancos": listar_bancos(),
         "faturas_mensais": faturas,
-        "parcelas_grandes": listar_parcelas(),
+        "parcelas_grandes": parcelas_raw,
         "caixa_outros": listar_caixa(),
-        "pagamentos_despesa": pagamentos,
+        "pagamentos_despesa": pag_despesa,
+        "pagamentos_parcela": pag_parcela,
         "exportado_em": datetime.now().isoformat(),
     }
 
@@ -608,10 +611,10 @@ def importar_backup(data):
         c.execute("DELETE FROM despesas_fixas")
         for d in data["despesas_fixas"]:
             c.execute(
-                "INSERT INTO despesas_fixas (id,nome,icone,valor,no_cartao,ordem,ativo,criado_em) VALUES (?,?,?,?,?,?,?,?)",
+                "INSERT INTO despesas_fixas (id,nome,icone,valor,no_cartao,ordem,ativo,criado_em,categoria) VALUES (?,?,?,?,?,?,?,?,?)",
                 (d.get("id"), d["nome"], d.get("icone","receipt"), d.get("valor",0),
                  d.get("no_cartao",0), d.get("ordem",0), d.get("ativo",1),
-                 d.get("criado_em", datetime.now().isoformat()))
+                 d.get("criado_em", datetime.now().isoformat()), d.get("categoria","outros"))
             )
 
     if "bancos" in data:
@@ -632,12 +635,14 @@ def importar_backup(data):
 
     if "parcelas_grandes" in data:
         c.execute("DELETE FROM parcelas_grandes")
+        c.execute("DELETE FROM pagamentos_parcela")
         for p in data["parcelas_grandes"]:
             c.execute(
-                "INSERT INTO parcelas_grandes (id,nome,icone,valor_parcela,parcelas_pagas,total_parcelas,no_cartao,ativo,criado_em) VALUES (?,?,?,?,?,?,?,?,?)",
+                "INSERT INTO parcelas_grandes (id,nome,icone,valor_parcela,parcelas_pagas,total_parcelas,no_cartao,ativo,mes_inicio,tipo,criado_em) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                 (p.get("id"), p["nome"], p.get("icone","credit-card"), p.get("valor_parcela",0),
                  p.get("parcelas_pagas",0), p.get("total_parcelas",1), p.get("no_cartao",0),
-                 p.get("ativo",1), p.get("criado_em", datetime.now().isoformat()))
+                 p.get("ativo",1), p.get("mes_inicio",""), p.get("tipo","pagar"),
+                 p.get("criado_em", datetime.now().isoformat()))
             )
 
     if "caixa_outros" in data:
@@ -656,6 +661,14 @@ def importar_backup(data):
             c.execute(
                 "INSERT INTO pagamentos_despesa (id,despesa_id,mes_ano,valor_pago) VALUES (?,?,?,?)",
                 (p.get("id"), p["despesa_id"], p["mes_ano"], p.get("valor_pago",0))
+            )
+
+    if "pagamentos_parcela" in data:
+        c.execute("DELETE FROM pagamentos_parcela")
+        for p in data["pagamentos_parcela"]:
+            c.execute(
+                "INSERT INTO pagamentos_parcela (id,parcela_id,mes_ano,pago) VALUES (?,?,?,?)",
+                (p.get("id"), p["parcela_id"], p["mes_ano"], p.get("pago",0))
             )
 
     conn.commit()
