@@ -578,9 +578,9 @@ async function toggleDespesaPago(id) {
 
 async function deleteDespesa(id) {
   const d = state.despesas.find(x => x.id === id);
-  if (!await confirmModal(`Excluir "${d?.nome || "despesa"}"?`, { sub: "Esta ação não pode ser desfeita." })) return;
-  await api(`/api/despesas/${id}`, { method: "DELETE" });
-  toast("Despesa excluída", "success");
+  if (!await confirmModal(`Excluir "${d?.nome || "despesa"}"?`, { sub: "Remove a partir deste mês. Meses anteriores são preservados." })) return;
+  await api(`/api/despesas/${id}?mes_ano=${state.mes}`, { method: "DELETE" });
+  toast("Despesa excluída a partir deste mês", "success");
   await loadAll();
 }
 

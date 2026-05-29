@@ -166,6 +166,12 @@ def init_db():
     except Exception:
         pass
 
+    # Garante que desativado_em existe em despesas_fixas
+    try:
+        c.execute("ALTER TABLE despesas_fixas ADD COLUMN desativado_em TEXT DEFAULT ''")
+    except Exception:
+        pass
+
     # Garante que mes_inicio existe em parcelas_grandes
     try:
         c.execute("ALTER TABLE parcelas_grandes ADD COLUMN mes_inicio TEXT DEFAULT ''")
@@ -226,8 +232,9 @@ def listar_despesas(mes_ano=None):
             FROM despesas_fixas d
             LEFT JOIN pagamentos_despesa p ON p.despesa_id = d.id AND p.mes_ano = ?
             WHERE d.ativo = 1
+              AND (d.desativado_em = '' OR d.desativado_em IS NULL OR ? < d.desativado_em)
             ORDER BY d.ordem, d.id
-        """, (mes_ano,)).fetchall()
+        """, (mes_ano, mes_ano)).fetchall()
     else:
         rows = conn.execute(
             "SELECT *, COALESCE(categoria,'outros') AS categoria, 0 AS valor_pago FROM despesas_fixas WHERE ativo=1 ORDER BY ordem, id"
@@ -273,9 +280,13 @@ def set_pagamento_despesa(despesa_id, mes_ano, valor_pago):
     conn.close()
 
 
-def excluir_despesa(id):
+def excluir_despesa(id, mes_ano=None):
     conn = get_conn()
-    conn.execute("UPDATE despesas_fixas SET ativo=0 WHERE id=?", (id,))
+    if mes_ano:
+        # Para de aparecer a partir deste mês; meses anteriores preservados
+        conn.execute("UPDATE despesas_fixas SET desativado_em=? WHERE id=?", (mes_ano, id))
+    else:
+        conn.execute("UPDATE despesas_fixas SET ativo=0 WHERE id=?", (id,))
     conn.commit()
     conn.close()
 

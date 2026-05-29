@@ -90,7 +90,8 @@ def api_despesas_update(id):
 
 @app.route("/api/despesas/<int:id>", methods=["DELETE"])
 def api_despesas_delete(id):
-    db.excluir_despesa(id)
+    mes = request.args.get("mes_ano") or get_mes()
+    db.excluir_despesa(id, mes)
     return jsonify({"ok": True})
 
 
