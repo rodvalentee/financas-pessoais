@@ -17,7 +17,53 @@ def _get_base_dir():
 
 _BASE_DIR = _get_base_dir()
 
-DB_PATH = os.path.join(_BASE_DIR, "financas.db")
+# Arquivo pequeno, fora do banco, que só guarda ONDE está o financas.db.
+# Não dá pra guardar isso dentro do próprio banco (referência circular).
+_SETTINGS_PATH = os.path.join(_BASE_DIR, "app_settings.json")
+
+
+def _default_db_path():
+    return os.path.join(_BASE_DIR, "financas.db")
+
+
+def _load_db_path():
+    try:
+        with open(_SETTINGS_PATH, "r", encoding="utf-8") as f:
+            caminho = json.load(f).get("db_path")
+            if caminho:
+                return caminho
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        pass
+    return _default_db_path()
+
+
+DB_PATH = _load_db_path()
+
+
+def get_db_path():
+    return DB_PATH
+
+
+def set_db_path(novo_caminho):
+    """Muda o arquivo de banco de dados usado pelo app.
+
+    Se já existir um financas.db no caminho informado, passa a usar os dados
+    dele. Caso contrário, cria um banco novo e vazio lá.
+    """
+    global DB_PATH
+    novo_caminho = os.path.abspath(os.path.expanduser(os.path.expandvars(novo_caminho.strip())))
+    pasta = os.path.dirname(novo_caminho)
+    if pasta and not os.path.isdir(pasta):
+        os.makedirs(pasta, exist_ok=True)
+
+    ja_existia = os.path.isfile(novo_caminho)
+    DB_PATH = novo_caminho
+    init_db()
+
+    with open(_SETTINGS_PATH, "w", encoding="utf-8") as f:
+        json.dump({"db_path": DB_PATH}, f)
+
+    return ja_existia
 
 
 def get_conn():
@@ -361,37 +407,66 @@ def salvar_fatura(banco_id, mes_ano, valor, pago):
 # ─── PARCELAS GRANDES ────────────────────────────────────────────────────────
 
 def _calcular_parcela_atual(mes_inicio, mes_ano):
-    """Retorna o número da parcela atual (1-indexed) para o mês informado."""
+    """Retorna o número da parcela atual (1-indexed) para o mês informado, pela contagem de calendário."""
     try:
-        ano_i, mes_i = int(mes_inicio[:4]), int(mes_inicio[5:])
-        ano_v, mes_v = int(mes_ano[:4]),    int(mes_ano[5:])
+        ano_i, mes_i = int(mes_inicio[:4]), int(mes_inicio[5:7])
+        ano_v, mes_v = int(mes_ano[:4]),    int(mes_ano[5:7])
         diff = (ano_v - ano_i) * 12 + (mes_v - mes_i)
         return diff + 1
     except Exception:
         return 1
 
 
+def _mes_por_offset(mes_inicio, offset):
+    """Retorna o mes_ano (YYYY-MM) que fica `offset` meses após mes_inicio."""
+    ano_i, mes_i = int(mes_inicio[:4]), int(mes_inicio[5:7])
+    total = ano_i * 12 + (mes_i - 1) + offset
+    ano, mes = divmod(total, 12)
+    return f"{ano:04d}-{mes + 1:02d}"
+
+
 def listar_parcelas(mes_ano=None):
-    """Retorna parcelas ativas no mês informado com parcela_atual e pago calculados."""
+    """Retorna parcelas ativas até o mês informado, com a parcela travada na primeira não paga."""
     if not mes_ano:
         mes_ano = mes_atual()
     conn = get_conn()
     rows = conn.execute("SELECT * FROM parcelas_grandes WHERE ativo=1 ORDER BY id").fetchall()
-    pagamentos = {r["parcela_id"]: r["pago"] for r in conn.execute(
-        "SELECT parcela_id, pago FROM pagamentos_parcela WHERE mes_ano=?", (mes_ano,)
+    pagamentos = {(r["parcela_id"], r["mes_ano"]): r["pago"] for r in conn.execute(
+        "SELECT parcela_id, mes_ano, pago FROM pagamentos_parcela"
     ).fetchall()}
     conn.close()
 
     result = []
     for p in [dict(r) for r in rows]:
         mes_ini = p.get("mes_inicio") or mes_ano
-        parcela_atual = _calcular_parcela_atual(mes_ini, mes_ano)
-        if parcela_atual < 1 or parcela_atual > p["total_parcelas"]:
+        total = p["total_parcelas"]
+        calc_num = _calcular_parcela_atual(mes_ini, mes_ano)
+        if calc_num < 1:
             continue
-        p["parcela_atual"]  = parcela_atual
-        p["parcelas_pagas"] = parcela_atual - 1
-        p["restantes"]      = p["total_parcelas"] - parcela_atual
-        p["pago"]           = pagamentos.get(p["id"], 0)
+
+        # trava a contagem na primeira parcela ainda não marcada como paga,
+        # em vez de avançar só pela diferença de meses no calendário
+        limite = min(calc_num, total)
+        parcela_atual = None
+        mes_referencia = None
+        for n in range(1, limite + 1):
+            canonico = _mes_por_offset(mes_ini, n - 1)
+            if not pagamentos.get((p["id"], canonico), 0):
+                parcela_atual = n
+                mes_referencia = canonico
+                break
+        if parcela_atual is None:
+            parcela_atual = limite + 1
+            mes_referencia = _mes_por_offset(mes_ini, parcela_atual - 1)
+
+        if parcela_atual > total:
+            continue  # todas as parcelas já foram pagas
+
+        p["parcela_atual"]   = parcela_atual
+        p["parcelas_pagas"]  = parcela_atual - 1
+        p["restantes"]       = total - parcela_atual
+        p["mes_referencia"]  = mes_referencia
+        p["pago"]            = pagamentos.get((p["id"], mes_referencia), 0)
         result.append(p)
     return result
 

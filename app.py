@@ -62,6 +62,43 @@ def api_config_set():
     return jsonify({"ok": True})
 
 
+@app.route("/api/db-location", methods=["GET"])
+def api_db_location_get():
+    return jsonify({"path": db.get_db_path()})
+
+
+@app.route("/api/browse-folder", methods=["POST"])
+def api_browse_folder():
+    """Abre o explorador de pastas nativo do Windows (o app roda localmente)."""
+    import tkinter as tk
+    from tkinter import filedialog
+
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    pasta = filedialog.askdirectory(title="Escolha a pasta para o banco de dados")
+    root.destroy()
+
+    if not pasta:
+        return jsonify({"path": None})
+    caminho = os.path.join(pasta, "financas.db")
+    return jsonify({"path": caminho, "existe": os.path.isfile(caminho)})
+
+
+@app.route("/api/db-location", methods=["POST"])
+def api_db_location_set():
+    caminho = (request.get_json() or {}).get("path", "").strip()
+    if not caminho:
+        return jsonify({"error": "Informe um caminho de arquivo."}), 400
+    if not caminho.lower().endswith(".db"):
+        return jsonify({"error": "O caminho deve apontar para um arquivo .db"}), 400
+    try:
+        ja_existia = db.set_db_path(caminho)
+    except OSError as e:
+        return jsonify({"error": f"Não foi possível usar esse caminho: {e}"}), 400
+    return jsonify({"ok": True, "path": db.get_db_path(), "existed": ja_existia})
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # DESPESAS FIXAS
 # ═══════════════════════════════════════════════════════════════════════════════

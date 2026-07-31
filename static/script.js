@@ -224,7 +224,7 @@ function navigate(id) {
 // ══════════════════════════════════════════════════════════════════
 async function loadAll() {
   const mes = state.mes;
-  const [resumo, despesas, bancos, faturas, parcelas, caixa, config, historico] = await Promise.all([
+  const [resumo, despesas, bancos, faturas, parcelas, caixa, config, historico, dbLocation] = await Promise.all([
     api(`/api/resumo?mes=${mes}`),
     api(`/api/despesas?mes=${mes}`),
     api("/api/bancos"),
@@ -233,8 +233,9 @@ async function loadAll() {
     api(`/api/caixa?mes=${mes}`),
     api("/api/config"),
     api(`/api/historico?mes=${mes}`),
+    api("/api/db-location"),
   ]);
-  state = { ...state, resumo, despesas, bancos, faturas, parcelas, caixa, config, historico };
+  state = { ...state, resumo, despesas, bancos, faturas, parcelas, caixa, config, historico, dbLocation };
   renderDashboard();
   renderDespesas();
   renderFaturas();
@@ -795,7 +796,7 @@ function renderParcelas() {
         <span class="badge ${p.pago ? 'badge-green' : 'badge-red'}">${p.pago ? '✓ Pago' : '● Pendente'}</span>
       </div>
       <div class="banco-actions" onclick="event.stopPropagation()">
-        <button class="btn btn-ghost btn-icon btn-sm" onclick="toggleParcelaPago(${p.id}, ${p.pago ? 0 : 1})" title="${p.pago ? 'Desmarcar' : 'Marcar pago'}">${p.pago ? icon("x",13) : icon("check",13)}</button>
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="toggleParcelaPago(${p.id}, ${p.pago ? 0 : 1}, '${p.mes_referencia}')" title="${p.pago ? 'Desmarcar' : 'Marcar pago'}">${p.pago ? icon("x",13) : icon("check",13)}</button>
         <button class="btn btn-danger btn-icon btn-sm" onclick="deleteParcela(${p.id})">${icon("trash",13)}</button>
       </div>
     </div>`;
@@ -851,10 +852,10 @@ async function saveParcela() {
   await loadAll();
 }
 
-async function toggleParcelaPago(id, pago) {
+async function toggleParcelaPago(id, pago, mesReferencia) {
   await api(`/api/parcelas/${id}/pago`, {
     method: "PUT",
-    body: JSON.stringify({ pago, mes_ano: state.mes }),
+    body: JSON.stringify({ pago, mes_ano: mesReferencia || state.mes }),
   });
   await loadAll();
 }
@@ -955,6 +956,7 @@ async function deleteCaixa(id) {
 // ══════════════════════════════════════════════════════════════════
 function renderConfig() {
   setCurrency($("#config-salario"), state.config.salario ?? "");
+  $("#db-location-atual").textContent = `Atual: ${state.dbLocation?.path || "..."}`;
 }
 
 async function saveConfig() {
@@ -962,6 +964,40 @@ async function saveConfig() {
   await api("/api/config", { method: "POST", body: JSON.stringify({ salario }) });
   toast("Configurações salvas!", "success");
   await loadAll();
+}
+
+async function browseDbFolder(modo) {
+  const r = await api("/api/browse-folder", { method: "POST" });
+  if (!r.path) return; // cancelou o diálogo
+
+  if (modo === "existing" && !r.existe) {
+    toast(`Essa pasta não tem um financas.db. Use o botão "Criar banco novo" se quiser começar do zero aqui.`, "error");
+    return;
+  }
+  if (modo === "new" && r.existe) {
+    toast(`Essa pasta já tem um financas.db. Use o botão "Escolher pasta com banco existente" pra carregar ele.`, "error");
+    return;
+  }
+
+  const sub = modo === "existing"
+    ? `Os dados de "${r.path}" serão carregados. Seus dados atuais continuam salvos onde estavam, só não vão mais aparecer aqui.`
+    : `Um financas.db novo e vazio será criado em "${r.path}".`;
+  if (!await confirmModal(modo === "existing" ? "Carregar banco existente?" : "Criar banco novo aqui?", {
+    warn: true,
+    okLabel: modo === "existing" ? "Carregar" : "Criar",
+    sub,
+  })) return;
+  await aplicarDbLocation(r.path);
+}
+
+async function aplicarDbLocation(path) {
+  try {
+    const r = await api("/api/db-location", { method: "POST", body: JSON.stringify({ path } ) });
+    toast(r.existed ? "Banco existente carregado!" : "Novo banco criado nesse local!", "success");
+    await loadAll();
+  } catch (e) {
+    toast(e.message || "Não foi possível trocar o local do banco", "error");
+  }
 }
 
 

@@ -223,6 +223,23 @@
 
           <div class="divider"></div>
 
+          <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);margin-bottom:12px">Local do Banco de Dados</div>
+          <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:12px;word-break:break-all" id="db-location-atual"></div>
+
+          <div style="font-size:12px;font-weight:600;margin-bottom:6px">① Já tenho um banco salvo em outro lugar (ex: OneDrive)</div>
+          <div style="font-size:11px;color:var(--color-text-muted);margin-bottom:8px">Escolha a pasta ONDE JÁ ESTÁ o arquivo financas.db. Os dados de lá serão carregados.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+            <button class="btn btn-outline" onclick="browseDbFolder('existing')">📂 Escolher pasta com banco existente</button>
+          </div>
+
+          <div style="font-size:12px;font-weight:600;margin-bottom:6px">② Quero começar um banco novo, do zero</div>
+          <div style="font-size:11px;color:var(--color-text-muted);margin-bottom:8px">Escolha uma pasta (ex: dentro do seu OneDrive) que AINDA NÃO tem banco. Um arquivo financas.db novo e vazio será criado lá.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="browseDbFolder('new')">🆕 Criar banco novo numa pasta</button>
+          </div>
+
+          <div class="divider"></div>
+
           <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);margin-bottom:12px">Backup do Banco de Dados</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-outline" onclick="downloadBackup()">
